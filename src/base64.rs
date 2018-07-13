@@ -6,6 +6,12 @@ static CHARACTERS: [u8; 65] = [
 ];
 static FILLER_VAL: u8 = 0x40;
 
+use std::str;
+
+pub fn to_base64_string(bytes: &[u8]) -> String {
+    String::from(str::from_utf8(&to_base64(bytes)).unwrap_or(""))
+}
+
 pub fn to_base64(bytes: &[u8]) -> Box<[u8]> {
     let mut result: Box<[u8]> = to_base64_raw(bytes);
 

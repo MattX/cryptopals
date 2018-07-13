@@ -1,12 +1,18 @@
 use std::io;
 
+pub fn hex_to_string(data: &[u8]) -> String {
+    data.into_iter()
+        .map(|byte| format!("{:x}", byte))
+        .collect::<Vec<String>>().join("")
+}
+
 pub fn read_hex_string() -> Result<Box<[u8]>, String> {
     let mut input: String = String::new();
     io::stdin().read_line(&mut input).map_err(|err| err.to_string())?;
     hex_string_to_bytes(input.trim())
 }
 
-fn hex_string_to_bytes(hex: &str) -> Result<Box<[u8]>, String> {
+pub fn hex_string_to_bytes(hex: &str) -> Result<Box<[u8]>, String> {
     let count = hex.chars().count();
     match count % 2 {
         0 => {
