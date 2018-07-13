@@ -6,7 +6,7 @@ static CHARACTERS: [u8; 65] = [
 ];
 static FILLER_VAL: u8 = 0x40;
 
-fn to_base64(bytes: &[u8]) -> Box<[u8]> {
+pub fn to_base64(bytes: &[u8]) -> Box<[u8]> {
     let mut result: Box<[u8]> = to_base64_raw(bytes);
 
     for i in 0..result.len() {
