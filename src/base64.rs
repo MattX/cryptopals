@@ -1,3 +1,5 @@
+use std::str;
+
 static CHARACTERS: [u8; 65] = [
     65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87,
     88, 89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112,
@@ -5,8 +7,6 @@ static CHARACTERS: [u8; 65] = [
     43, 47, 61
 ];
 static FILLER_VAL: u8 = 0x40;
-
-use std::str;
 
 pub fn to_base64_string(bytes: &[u8]) -> String {
     String::from(str::from_utf8(&to_base64(bytes)).unwrap_or(""))

@@ -17,37 +17,15 @@ pub fn hex_string_to_bytes(hex: &str) -> Result<Box<[u8]>, String> {
     match count % 2 {
         0 => {
             let mut result = vec![0; count / 2].into_boxed_slice();
-            let chars: Vec<u8> = hex.chars().map(|c| {
-                hex_digit_to_val(c).unwrap()
-            }).collect();
+            let chars: Vec<u8> = hex.chars().map(|c|
+                c.to_digit(16).unwrap() as u8
+            ).collect();
             for i in 0..count / 2 {
                 result[i] = chars[2*i] * 16 + chars[2*i + 1];
             }
             Ok(result)
         },
         _ => Err(format!("Wrong parity of half-bytes in hex string: {}", count))
-    }
-}
-
-fn hex_digit_to_val(digit: char) -> Result<u8, ()> {
-    match digit {
-        '0' => Ok(0),
-        '1' => Ok(1),
-        '2' => Ok(2),
-        '3' => Ok(3),
-        '4' => Ok(4),
-        '5' => Ok(5),
-        '6' => Ok(6),
-        '7' => Ok(7),
-        '8' => Ok(8),
-        '9' => Ok(9),
-        'a' => Ok(10),
-        'b' => Ok(11),
-        'c' => Ok(12),
-        'd' => Ok(13),
-        'e' => Ok(14),
-        'f' => Ok(15),
-        _ => Err(())
     }
 }
 

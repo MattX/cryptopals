@@ -2,6 +2,7 @@ mod base64;
 mod hex_io;
 mod xor;
 mod single_xor;
+mod evaluate;
 
 fn main() {
     println!("Enter hex string:");
