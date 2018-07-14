@@ -1,9 +1,8 @@
 mod base64;
 mod hex_io;
 mod xor;
-mod single_xor;
 mod evaluate;
-mod multi_xor;
+mod xor_guesser;
 
 use std::io;
 
@@ -12,7 +11,7 @@ fn main() {
     let mut input: String = String::new();
     match io::stdin().read_line(&mut input) {
         Ok(string) => {
-            println!("{}", multi_xor::multi_xor(&input.trim()));
+            println!("{}", xor_guesser::multi_xor(&input.trim()));
         }
         Err(descr) => {
             println!("Error reading string: {}", descr);

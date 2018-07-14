@@ -11,6 +11,16 @@ pub fn xor(a: &[u8], b: &[u8]) -> Box<[u8]> {
     result.into_boxed_slice()
 }
 
+pub fn rep_key_xor(input: &[u8], key: &[u8]) -> Box<[u8]> {
+    let extended_key :Vec<u8> = key.iter()
+        .cycle()
+        .take(input.len())
+        .map(|c| *c)
+        .collect();
+
+    xor(input, &extended_key)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
