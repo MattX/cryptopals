@@ -3,12 +3,16 @@ mod hex_io;
 mod xor;
 mod single_xor;
 mod evaluate;
+mod multi_xor;
+
+use std::io;
 
 fn main() {
-    println!("Enter hex string:");
-    match hex_io::read_hex_string() {
+    println!("Enter filename:");
+    let mut input: String = String::new();
+    match io::stdin().read_line(&mut input) {
         Ok(string) => {
-            println!("{}", single_xor::find_best_xor(&string));
+            println!("{}", multi_xor::multi_xor(&input.trim()));
         }
         Err(descr) => {
             println!("Error reading string: {}", descr);

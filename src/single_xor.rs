@@ -1,9 +1,13 @@
-use std::str;
 use std::f32;
 use xor;
 use evaluate;
 
 pub fn find_best_xor(encrypted: &[u8]) -> String {
+    let (val, score) = single_xor(encrypted);
+    val
+}
+
+pub fn single_xor(encrypted: &[u8]) -> (String, f32) {
     let mut best_value: String = String::new();
     let mut best_score: f32 = f32::INFINITY;
 
@@ -19,5 +23,5 @@ pub fn find_best_xor(encrypted: &[u8]) -> String {
         }
     }
 
-    best_value
+    (best_value, best_score)
 }
