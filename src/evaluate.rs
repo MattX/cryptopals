@@ -36,20 +36,22 @@ static FREQUENCIES: [f32; 26] = [
 /// Scores a string the lower the score, the likelier to be English.
 ///
 /// This is very basic and basically just tries to maximize the amount of letters.
-/// TODO: should probably be rewritten to take an `[u8]` array instead.
-pub fn evaluate(string: &str) -> f32 {
-  string.chars().fold(0.0, |tot, c| {
-    tot +
-        (if c.is_ascii_alphanumeric() {
-          0.0
-        } else if c.is_ascii_whitespace() {
-          0.1
-        } else if c.is_ascii_punctuation() {
-          0.2
-        } else {
-          1.0
-        })
-  })
+pub fn evaluate(string: &[u8]) -> f32 {
+  string.iter().map(|c| char_score(c)).sum::<f32>() / string.len() as f32
+}
+
+fn char_score(c: &u8) -> f32 {
+  if c.is_ascii_punctuation() {
+    0.3
+  } else if c.is_ascii_whitespace() {
+    0.2
+  } else if c.is_ascii_digit() {
+    0.1
+  } else if c.is_ascii_alphabetic() {
+    0.0
+  } else {
+    1.0
+  }
 }
 
 /// Scores a string the lower the score, the likelier to be English.

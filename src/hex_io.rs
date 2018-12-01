@@ -1,10 +1,9 @@
 //! I/O of hexadecimal/base64 values.
 
-use std::io;
-use std::fmt;
-use std::ops::Deref;
 use std::fs::File;
-use std::io::Read;
+use std::io;
+use std::io::{BufReader, BufRead};
+use std::ops::Deref;
 
 /// Prints an array of bytes as an hex string
 pub fn print_hex_string(data: &[u8]) -> () {
@@ -26,13 +25,11 @@ pub fn read_hex_string() -> Result<Box<[u8]>, String> {
 }
 
 /// Reads an hex string from a file
-pub fn read_hex_file(filename: &str) -> Result<Box<[u8]>, String> {
-  let mut file = File::open(filename)
-      .unwrap_or_else(|e| panic!("File {} not found", filename));
-  let mut buffer = String::new();
-
-  file.read_to_string(&mut buffer).map_err(|e| e.to_string())?;
-  hex_string_to_bytes(&buffer)
+pub fn read_hex_file(filename: &str) -> Result<Vec<Box<[u8]>>, String> {
+  let mut file = File::open(filename).map_err(|e| e.to_string())?;
+  BufReader::new(file).lines()
+      .map(|lr| lr.map_err(|e| e.to_string()).and_then(|l| hex_string_to_bytes(&l)))
+      .collect()
 }
 
 /// Turns a string representing hex values into an array of bytes
@@ -59,8 +56,9 @@ pub fn hex_string_to_bytes(hex: &str) -> Result<Box<[u8]>, String> {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
   use base64;
+
+  use super::*;
 
   const EXAMPLE_STRING: &'static str =
     "49276d206b696c6c696e6720796f757220627261696e206c\

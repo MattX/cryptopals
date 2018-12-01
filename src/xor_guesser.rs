@@ -1,34 +1,15 @@
 //! Functions for stuff
 
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::cmp::Ordering::*;
 use std::f32;
-use num::Integer;
-use xor;
+use std::fs::File;
+use std::io::{BufRead, BufReader, Read};
+
 use evaluate;
-use hex_io;
-use hamming;
+use hamming::*;
+use xor;
 
-pub fn multi_xor(filename: &str) -> String {
-  let file = File::open(filename)
-      .unwrap_or_else(|e| panic!("File {} not found", filename));
-  let best = BufReader::new(file).lines()
-      .map(|l| single_xor(
-        &hex_io::hex_string_to_bytes(&l.unwrap()).unwrap()
-      ))
-      .min_by(|(v1, k1, s1), (v2, k2, s2)| s1.partial_cmp(s2).unwrap_or(Equal))
-      .map(|(v, k, s)| v)
-      .unwrap();
-
-  best
-}
-
-pub fn find_best_xor(encrypted: &[u8]) -> String {
-  let (val, key, score) = single_xor(encrypted);
-  val
-}
-
+/// Finds the key for a cipher text that was encrypted with a one-byte key.
 pub fn single_xor(encrypted: &[u8]) -> (String, u8, f32) {
   let mut best_value: String = String::new();
   let mut best_key: u8 = 0;
@@ -37,8 +18,8 @@ pub fn single_xor(encrypted: &[u8]) -> (String, u8, f32) {
   for i in 0..255 as u8 {
     let key = vec![i; encrypted.len()];
     let result = xor::xor(encrypted, &key);
+    let score = evaluate::evaluate(&result);
     let str_result: String = result.iter().map(|c| *c as char).collect();
-    let score = evaluate::evaluate(&str_result);
     if score < best_score {
       best_score = score;
       best_key = i;
@@ -49,55 +30,84 @@ pub fn single_xor(encrypted: &[u8]) -> (String, u8, f32) {
   (best_value, best_key, best_score)
 }
 
-pub fn find_key_size(buffer: &[u8]) -> usize {
-  if buffer.len() < 80 {
+pub fn best_repeating_xor_keys(buffer: &[u8]) -> Vec<Box<[u8]>> {
+  let key_sizes = guess_key_size(buffer);
+  println!("Key sizes {:?}", key_sizes);
+  let mut keys: Vec<Box<[u8]>> = Vec::new();
+
+  for key_size in key_sizes.iter() {
+    let transposed = transpose_blocks(buffer, *key_size)
+        .iter()
+        .map(|col| find_best_single_key(&col))
+        .collect::<Vec<u8>>()
+        .into_boxed_slice();
+    keys.push(transposed);
+  }
+
+  keys
+}
+
+/// Finds the most likely key sizes in a cipher text (between 2 and 40). Returns the 3 most likely
+/// values.
+///
+/// Compares the hamming distance between the first few blocks for a range of possibilities.
+fn guess_key_size(buffer: &[u8]) -> Box<[usize]> {
+  const N_BLOCKS: usize = 4;
+  const MAX_KEY_SIZE: usize = 40;
+
+  if buffer.len() < MAX_KEY_SIZE * N_BLOCKS {
     panic!("Buffer too short to determine key size");
   }
 
-  let score = |i: usize| (hamming::bit_hamming(&buffer[0..i], &buffer[i..2*i]) as f64) / (i as f64);
+  let score = |key_size: usize| {
+    let mut total_distance = 0;
+    let first_block = &buffer[0.. key_size];
+    for i in 1..N_BLOCKS {
+      let second_block = &buffer[i * key_size..(i + 1) * key_size];
+      total_distance += bit_hamming(first_block, second_block);
+    }
+    total_distance as f64 / (key_size as f64)
+  };
 
-  (2_usize..40)
-      .min_by(|&i, &j| score(i).partial_cmp(&score(j)).unwrap_or(Equal))
-      .unwrap()
+  let mut res = (2_usize..MAX_KEY_SIZE)
+      .map(|i| (i, score(i)))
+      .collect::<Vec<(usize, f64)>>();
+  res.sort_by(|(i, si), (j, sj)| si.partial_cmp(sj).unwrap_or(Equal));
+  res.iter()
+      .map(|(i, si)| *i)
+      .take(3)
+      .collect::<Vec<usize>>()
+      .into_boxed_slice()
 }
 
-pub fn transpose_blocks(buffer: &[u8], key_length: usize) -> Vec<Vec<u8>> {
-  let n_full_blocks= (buffer.len() + key_length - 1) / key_length;
+/// Helper function to return the best single key
+fn find_best_single_key(encrypted: &[u8]) -> u8 {
+  let (val, key, score) = single_xor(encrypted);
+  key
+}
+
+fn transpose_blocks(buffer: &[u8], key_length: usize) -> Vec<Vec<u8>> {
   let mut transposed: Vec<Vec<u8>> = Vec::with_capacity(key_length);
 
   for i in 0..key_length {
-    transposed.push(Vec::with_capacity(n_full_blocks));
+    transposed.push(Vec::new());
   }
 
-  for i in 0..n_full_blocks {
-    for j in 0..key_length {
-      let source_index = j + i * key_length;
-      if source_index < buffer.len() {
-        transposed[j].push(buffer[source_index]);
-      }
-    }
+  for (i, c) in buffer.iter().enumerate() {
+    let block = i % key_length;
+    transposed[block].push(*c);
   }
 
   transposed
 }
 
-pub fn best_rep(buffer: &[u8]) -> Box<[u8]> {
-  let key_size = find_key_size(buffer);
-  let transposed = transpose_blocks(buffer, key_size);
-
-  let strs :Vec<String> = transposed.iter().map(|col| find_best_xor(&col)).collect();
-  let max_len = strs.iter().map(|s| s.len()).max().unwrap();
-
-  for i in 0..strs.len() {
-  }
-
-  vec![].into_boxed_slice()
-}
 
 #[cfg(test)]
 mod test {
-  use super::*;
+  use std::str::from_utf8;
+  use base64;
   use hex_io::*;
+  use super::*;
 
   #[test]
   fn test_transpose() {
@@ -115,5 +125,37 @@ mod test {
     let (res, key, score) = single_xor(&hex_string_to_bytes(CHALLENGE_3_DATA).unwrap());
     assert_eq!(key, 88);
     assert_eq!(&res, "Cooking MC's like a pound of bacon");
+  }
+
+  #[test]
+  fn challenge_4() {
+    let lines = read_hex_file("data/4.txt").unwrap();
+    let (best_result, best_key, best_score) = lines.into_iter()
+        .map(|l| single_xor(&l))
+        .min_by(|(v1, k1, s1), (v2, k2, s2)| s1.partial_cmp(s2).unwrap_or(Equal)).unwrap();
+    assert_eq!(&best_result, "Now that the party is jumping\n");
+  }
+
+  #[test]
+  fn challenge_6_2() {
+    let mut test_data_file = File::open("data/6.txt").unwrap();
+    let mut test_data_string = String::new();
+    test_data_file.read_to_string(&mut test_data_string).unwrap();
+    test_data_string.retain(|c| c.is_alphanumeric());
+
+    let test_data = base64::decode(test_data_string.as_bytes()).unwrap();
+    let best_keys = best_repeating_xor_keys(&test_data);
+    let mut decoded: Vec<Box<[u8]>> = Vec::new();
+
+    for key in best_keys {
+      decoded.push(xor::rep_key_xor(&test_data, &key));
+    }
+
+    let best = decoded.iter()
+        .map(|d| (d, evaluate::evaluate(&d)))
+        .min_by(|(a, sa), (b, sb)| sa.partial_cmp(sb).unwrap_or(Equal))
+        .unwrap();
+
+    assert_eq!(from_utf8(best.0).unwrap(), "");
   }
 }

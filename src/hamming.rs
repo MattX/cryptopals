@@ -31,7 +31,7 @@ mod test {
   }
 
   #[test]
-  pub fn test_hamming() {
+  pub fn challenge_6_2() {
     assert_eq!(bit_hamming(
       "this is a test".as_bytes(),
       "wokka wokka!!!".as_bytes()
