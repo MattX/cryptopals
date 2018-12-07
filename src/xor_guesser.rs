@@ -4,6 +4,7 @@ use std::cmp::Ordering::*;
 use std::f32;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read};
+use std::str::from_utf8_unchecked;
 
 use evaluate;
 use hamming::*;
@@ -19,7 +20,10 @@ pub fn single_xor(encrypted: &[u8]) -> (String, u8, f32) {
     let key = vec![i; encrypted.len()];
     let result = xor::xor(encrypted, &key);
     let score = evaluate::evaluate(&result);
-    let str_result: String = result.iter().map(|c| *c as char).collect();
+    let mut str_result = String::new();
+    unsafe {
+       str_result = from_utf8_unchecked(&result).to_string();
+    }
     if score < best_score {
       best_score = score;
       best_key = i;
@@ -36,12 +40,12 @@ pub fn best_repeating_xor_keys(buffer: &[u8]) -> Vec<Box<[u8]>> {
   let mut keys: Vec<Box<[u8]>> = Vec::new();
 
   for key_size in key_sizes.iter() {
-    let transposed = transpose_blocks(buffer, *key_size)
-        .iter()
+    let transposed = transpose_blocks(buffer, *key_size);
+    let best_keys = transposed.iter()
         .map(|col| find_best_single_key(&col))
         .collect::<Vec<u8>>()
         .into_boxed_slice();
-    keys.push(transposed);
+    keys.push(best_keys);
   }
 
   keys
@@ -141,7 +145,7 @@ mod test {
     let mut test_data_file = File::open("data/6.txt").unwrap();
     let mut test_data_string = String::new();
     test_data_file.read_to_string(&mut test_data_string).unwrap();
-    test_data_string.retain(|c| c.is_alphanumeric());
+    test_data_string.retain(|c| !c.is_whitespace());
 
     let test_data = base64::decode(test_data_string.as_bytes()).unwrap();
     let best_keys = best_repeating_xor_keys(&test_data);
@@ -156,6 +160,8 @@ mod test {
         .min_by(|(a, sa), (b, sb)| sa.partial_cmp(sb).unwrap_or(Equal))
         .unwrap();
 
-    assert_eq!(from_utf8(best.0).unwrap(), "");
+    let expected_result = "I\'m back and I\'m ringin\' the bell";
+    assert_eq!(&from_utf8(best.0).unwrap()[0..expected_result.len()],
+               expected_result);
   }
 }

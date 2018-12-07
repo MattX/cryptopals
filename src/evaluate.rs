@@ -33,9 +33,9 @@ static FREQUENCIES: [f32; 26] = [
   0.00074
 ];
 
-/// Scores a string the lower the score, the likelier to be English.
+/// Scores a string; the lower the score, the likelier to be English.
 ///
-/// This is very basic and basically just tries to maximize the amount of letters.
+/// This is very basic and basically just tries to detect garbage bytes.
 pub fn evaluate(string: &[u8]) -> f32 {
   string.iter().map(|c| char_score(c)).sum::<f32>() / string.len() as f32
 }
@@ -54,7 +54,7 @@ fn char_score(c: &u8) -> f32 {
   }
 }
 
-/// Scores a string the lower the score, the likelier to be English.
+/// Scores a string; the lower the score, the likelier to be English.
 ///
 /// Compares the distributions of letters in the string with a reference and returns the L2
 /// distance between the two.
