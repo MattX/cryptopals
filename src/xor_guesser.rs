@@ -36,7 +36,6 @@ pub fn single_xor(encrypted: &[u8]) -> (String, u8, f32) {
 
 pub fn best_repeating_xor_keys(buffer: &[u8]) -> Vec<Box<[u8]>> {
   let key_sizes = guess_key_size(buffer);
-  println!("Key sizes {:?}", key_sizes);
   let mut keys: Vec<Box<[u8]>> = Vec::new();
 
   for key_size in key_sizes.iter() {
@@ -142,12 +141,7 @@ mod test {
 
   #[test]
   fn challenge_6_2() {
-    let mut test_data_file = File::open("data/6.txt").unwrap();
-    let mut test_data_string = String::new();
-    test_data_file.read_to_string(&mut test_data_string).unwrap();
-    test_data_string.retain(|c| !c.is_whitespace());
-
-    let test_data = base64::decode(test_data_string.as_bytes()).unwrap();
+    let test_data = load_b64_from_file("data/6.txt");
     let best_keys = best_repeating_xor_keys(&test_data);
     let mut decoded: Vec<Box<[u8]>> = Vec::new();
 

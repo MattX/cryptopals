@@ -2,7 +2,7 @@
 
 use std::fs::File;
 use std::io;
-use std::io::{BufReader, BufRead};
+use std::io::{BufReader, BufRead, Read};
 use std::ops::Deref;
 
 /// Prints an array of bytes as an hex string
@@ -54,10 +54,18 @@ pub fn hex_string_to_bytes(hex: &str) -> Result<Box<[u8]>, String> {
   }
 }
 
+pub fn load_b64_from_file(filename: &str) -> Box<[u8]> {
+  let mut test_data_file = File::open(filename).unwrap();
+  let mut test_data_string = String::new();
+  test_data_file.read_to_string(&mut test_data_string).unwrap();
+  test_data_string.retain(|c| !c.is_whitespace());
+
+  base64::decode(test_data_string.as_bytes()).unwrap().into_boxed_slice()
+}
+
 #[cfg(test)]
 mod tests {
   use base64;
-
   use super::*;
 
   const EXAMPLE_STRING: &'static str =
