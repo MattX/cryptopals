@@ -1,12 +1,13 @@
 extern crate base64;
 extern crate openssl;
 
-mod hex_io;
-mod xor;
-mod evaluate;
-mod xor_guesser;
-mod hamming;
 mod aes;
+mod evaluate;
+mod hamming;
+mod hex_io;
+mod pkcs;
+mod xor;
+mod xor_guesser;
 
 use std::io;
 
