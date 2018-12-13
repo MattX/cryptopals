@@ -24,7 +24,7 @@ pub fn read_hex_string() -> Result<Box<[u8]>, String> {
   hex_string_to_bytes(input.trim())
 }
 
-/// Reads an hex string from a file
+/// Reads a sequence of hex strings from a file
 pub fn read_hex_file(filename: &str) -> Result<Vec<Box<[u8]>>, String> {
   let mut file = File::open(filename).map_err(|e| e.to_string())?;
   BufReader::new(file).lines()
