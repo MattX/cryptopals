@@ -6,6 +6,7 @@ mod evaluate;
 mod hamming;
 mod hex_io;
 mod pkcs;
+mod util;
 mod xor;
 mod xor_guesser;
 

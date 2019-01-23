@@ -54,13 +54,15 @@ pub fn hex_string_to_bytes(hex: &str) -> Result<Box<[u8]>, String> {
   }
 }
 
-pub fn load_b64_from_file(filename: &str) -> Box<[u8]> {
-  let mut test_data_file = File::open(filename).unwrap();
+pub fn load_b64_from_file(filename: &str) -> Result<Box<[u8]>, String> {
+  let mut test_data_file = File::open(filename).map_err(|e| e.to_string())?;
   let mut test_data_string = String::new();
-  test_data_file.read_to_string(&mut test_data_string).unwrap();
+  test_data_file.read_to_string(&mut test_data_string).map_err(|e| e.to_string())?;
   test_data_string.retain(|c| !c.is_whitespace());
 
-  base64::decode(test_data_string.as_bytes()).unwrap().into_boxed_slice()
+  base64::decode(test_data_string.as_bytes())
+      .map_err(|e| e.to_string())
+      .map(|v| v.into_boxed_slice())
 }
 
 #[cfg(test)]

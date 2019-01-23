@@ -141,7 +141,7 @@ mod test {
 
   #[test]
   fn challenge_6_2() {
-    let test_data = load_b64_from_file("data/6.txt");
+    let test_data = load_b64_from_file("data/6.txt").unwrap();
     let best_keys = best_repeating_xor_keys(&test_data);
     let mut decoded: Vec<Box<[u8]>> = Vec::new();
 
