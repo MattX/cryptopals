@@ -1,4 +1,4 @@
-use openssl::symm::{decrypt, Cipher, Crypter, Mode};
+use openssl::symm::{Cipher, Crypter, Mode};
 use std::collections::HashMap;
 use xor::xor;
 
@@ -58,7 +58,7 @@ fn score_duplicates(data: &[u8]) -> u64 {
     let mut counts = HashMap::new();
 
     for chunk in data.chunks(AES_BLOCK_SIZE) {
-        let stat = counts
+        counts
             .entry(chunk)
             .and_modify(|x| *x += 1)
             .or_insert(0 as u64);
@@ -91,7 +91,7 @@ mod tests {
         let scored = possibilities
             .iter()
             .map(|p| (score_duplicates(&p), p))
-            .max_by_key(|(sp, p)| *sp)
+            .max_by_key(|(sp, _p)| *sp)
             .unwrap()
             .1;
 

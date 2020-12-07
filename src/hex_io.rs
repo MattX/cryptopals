@@ -3,16 +3,15 @@
 use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader, Read};
-use std::ops::Deref;
 
 /// Prints an array of bytes as an hex string
-pub fn print_hex_string(data: &[u8]) -> () {
+pub fn print_hex_string(data: &[u8]) {
     println!("{}", hex_to_string(data));
 }
 
 /// Turns an array of bytes into its string representation in hex
 pub fn hex_to_string(data: &[u8]) -> String {
-    data.into_iter()
+    data.iter()
         .map(|byte| format!("{:x}", byte))
         .collect::<Vec<String>>()
         .join("")
@@ -29,7 +28,7 @@ pub fn read_hex_string() -> Result<Box<[u8]>, String> {
 
 /// Reads a sequence of hex strings from a file
 pub fn read_hex_file(filename: &str) -> Result<Vec<Box<[u8]>>, String> {
-    let mut file = File::open(filename).map_err(|e| e.to_string())?;
+    let file = File::open(filename).map_err(|e| e.to_string())?;
     BufReader::new(file)
         .lines()
         .map(|lr| {
@@ -91,7 +90,7 @@ mod tests {
     #[test]
     fn convert_example_string() {
         assert_eq!(
-            hex_string_to_bytes(EXAMPLE_STRING).unwrap().deref(),
+            &*hex_string_to_bytes(EXAMPLE_STRING).unwrap(),
             &[
                 73, 39, 109, 32, 107, 105, 108, 108, 105, 110, 103, 32, 121, 111, 117, 114, 32, 98,
                 114, 97, 105, 110, 32, 108, 105, 107, 101, 32, 97, 32, 112, 111, 105, 115, 111,

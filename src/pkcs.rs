@@ -8,7 +8,7 @@ pub fn pkcs7(block_size: u8, data_im: Vec<u8>) -> Vec<u8> {
     }
 
     let to_add = block_size - last_block_size;
-    for i in 0..to_add {
+    for _i in 0..to_add {
         data.push(to_add);
     }
     data

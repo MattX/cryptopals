@@ -17,7 +17,7 @@ fn main() {
     let mut input: String = String::new();
     match io::stdin().read_line(&mut input) {
         Ok(_) => {
-            let encrypted = hex_io::read_hex_file(&input).unwrap();
+            hex_io::read_hex_file(&input).unwrap();
         }
         Err(descr) => {
             println!("Error reading string: {}", descr);

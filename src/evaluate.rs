@@ -41,7 +41,7 @@ pub fn evaluate_alt(string: &str) -> f32 {
 
     let this_vector = ALPHABET
         .chars()
-        .map(|c| freq_map.get(&c).unwrap_or(&0.0).clone())
+        .map(|c| *freq_map.get(&c).unwrap_or(&0.0))
         .collect::<Vec<f32>>();
 
     this_vector
@@ -53,7 +53,7 @@ pub fn evaluate_alt(string: &str) -> f32 {
 }
 
 fn counter_to_freq(counter: &HashMap<char, u64>) -> HashMap<char, f32> {
-    let total = counter.values().fold(0, |x, y| x + y);
+    let total = counter.values().sum::<u64>();
     let mut frequency_map = HashMap::new();
 
     counter.iter().for_each(|(k, v)| {

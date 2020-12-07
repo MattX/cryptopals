@@ -2,8 +2,6 @@
 
 use std::cmp::Ordering::*;
 use std::f32;
-use std::fs::File;
-use std::io::{BufRead, BufReader, Read};
 use std::str::from_utf8_unchecked;
 
 use evaluate;
@@ -20,10 +18,9 @@ pub fn single_xor(encrypted: &[u8]) -> (String, u8, f32) {
         let key = vec![i; encrypted.len()];
         let result = xor::xor(encrypted, &key);
         let score = evaluate::evaluate(&result);
-        let mut str_result = String::new();
-        unsafe {
-            str_result = from_utf8_unchecked(&result).to_string();
-        }
+        let str_result = unsafe {
+            from_utf8_unchecked(&result).to_string()
+        };
         if score < best_score {
             best_score = score;
             best_key = i;
@@ -76,9 +73,9 @@ fn guess_key_size(buffer: &[u8]) -> Box<[usize]> {
     let mut res = (2_usize..MAX_KEY_SIZE)
         .map(|i| (i, score(i)))
         .collect::<Vec<(usize, f64)>>();
-    res.sort_by(|(i, si), (j, sj)| si.partial_cmp(sj).unwrap_or(Equal));
+    res.sort_by(|(_i, si), (_j, sj)| si.partial_cmp(sj).unwrap_or(Equal));
     res.iter()
-        .map(|(i, si)| *i)
+        .map(|(i, _si)| *i)
         .take(3)
         .collect::<Vec<usize>>()
         .into_boxed_slice()
@@ -86,14 +83,14 @@ fn guess_key_size(buffer: &[u8]) -> Box<[usize]> {
 
 /// Helper function to return the best single key
 fn find_best_single_key(encrypted: &[u8]) -> u8 {
-    let (val, key, score) = single_xor(encrypted);
+    let (_val, key, _score) = single_xor(encrypted);
     key
 }
 
 fn transpose_blocks(buffer: &[u8], key_length: usize) -> Vec<Vec<u8>> {
     let mut transposed: Vec<Vec<u8>> = Vec::with_capacity(key_length);
 
-    for i in 0..key_length {
+    for _i in 0..key_length {
         transposed.push(Vec::new());
     }
 
@@ -108,7 +105,6 @@ fn transpose_blocks(buffer: &[u8], key_length: usize) -> Vec<Vec<u8>> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use base64;
     use hex_io::*;
     use std::str::from_utf8;
 
@@ -125,7 +121,7 @@ mod test {
 
     #[test]
     fn challenge_3() {
-        let (res, key, score) = single_xor(&hex_string_to_bytes(CHALLENGE_3_DATA).unwrap());
+        let (res, key, _score) = single_xor(&hex_string_to_bytes(CHALLENGE_3_DATA).unwrap());
         assert_eq!(key, 88);
         assert_eq!(&res, "Cooking MC's like a pound of bacon");
     }
@@ -133,10 +129,10 @@ mod test {
     #[test]
     fn challenge_4() {
         let lines = read_hex_file("data/4.txt").unwrap();
-        let (best_result, best_key, best_score) = lines
+        let (best_result, _best_key, _best_score) = lines
             .into_iter()
             .map(|l| single_xor(&l))
-            .min_by(|(v1, k1, s1), (v2, k2, s2)| s1.partial_cmp(s2).unwrap_or(Equal))
+            .min_by(|(_v1, _k1, s1), (_v2, _k2, s2)| s1.partial_cmp(s2).unwrap_or(Equal))
             .unwrap();
         assert_eq!(&best_result, "Now that the party is jumping\n");
     }
@@ -154,7 +150,7 @@ mod test {
         let best = decoded
             .iter()
             .map(|d| (d, evaluate::evaluate(&d)))
-            .min_by(|(a, sa), (b, sb)| sa.partial_cmp(sb).unwrap_or(Equal))
+            .min_by(|(_a, sa), (_b, sb)| sa.partial_cmp(sb).unwrap_or(Equal))
             .unwrap();
 
         let expected_result = "I\'m back and I\'m ringin\' the bell";
