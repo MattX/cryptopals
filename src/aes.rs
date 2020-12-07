@@ -1,6 +1,6 @@
 use openssl::symm::{Cipher, Crypter, Mode};
 use std::collections::HashMap;
-use xor::xor;
+use crate::xor::xor;
 
 const AES_BLOCK_SIZE: usize = 16;
 
@@ -70,7 +70,7 @@ fn score_duplicates(data: &[u8]) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use hex_io::*;
+    use crate::hex_io::*;
     use std::str::from_utf8;
 
     #[test]
@@ -101,7 +101,7 @@ mod tests {
 
     #[test]
     fn challenge_10() {
-        use util::bytes_to_string;
+        use crate::util::bytes_to_string;
 
         let data = load_b64_from_file("data/10.txt").unwrap();
         let reference = "I\\'m back and I\\'m ringin\\' the bell";

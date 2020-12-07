@@ -19,7 +19,7 @@ pub fn rep_key_xor(input: &[u8], key: &[u8]) -> Box<[u8]> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use hex_io::*;
+    use crate::hex_io::*;
 
     #[test]
     fn challenge_2() {

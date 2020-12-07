@@ -4,9 +4,9 @@ use std::cmp::Ordering::*;
 use std::f32;
 use std::str::from_utf8_unchecked;
 
-use evaluate;
-use hamming::*;
-use xor;
+use crate::evaluate;
+use crate::hamming::*;
+use crate::xor;
 
 /// Finds the key for a cipher text that was encrypted with a one-byte key.
 pub fn single_xor(encrypted: &[u8]) -> (String, u8, f32) {
@@ -105,7 +105,7 @@ fn transpose_blocks(buffer: &[u8], key_length: usize) -> Vec<Vec<u8>> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use hex_io::*;
+    use crate::hex_io::*;
     use std::str::from_utf8;
 
     #[test]
